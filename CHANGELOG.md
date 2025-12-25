@@ -1,5 +1,13 @@
 # @releaseband/vite-plugin-meta
 
+## [0.0.4](https://github.com/ksv90/vite-plugin-meta/compare/v0.0.3...v0.0.4) (2025-12-25)
+
+
+### Bug Fixes
+
+* release ([6c53a69](https://github.com/ksv90/vite-plugin-meta/commit/6c53a697dbe598a67fbb464b7db6d93d344157aa))
+* release ([f9a6a93](https://github.com/ksv90/vite-plugin-meta/commit/f9a6a93f1057784161097a627077edc46b5e9fdc))
+
 ## [0.0.3](https://github.com/ksv90/vite-plugin-meta/compare/v0.0.2...v0.0.3) (2025-12-25)
 
 
