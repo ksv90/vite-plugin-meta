@@ -1,5 +1,14 @@
 # @releaseband/vite-plugin-meta
 
+## [0.0.3](https://github.com/ksv90/vite-plugin-meta/compare/v0.0.2...v0.0.3) (2025-12-25)
+
+
+### Bug Fixes
+
+* scripts removed ([55a2f28](https://github.com/ksv90/vite-plugin-meta/commit/55a2f28dca4dc3a91f40b1841e9b74c26b570a39))
+* scripts removed ([1c95baa](https://github.com/ksv90/vite-plugin-meta/commit/1c95baa7d41d12fbafa5b04588e2551528846329))
+* typo ([909471e](https://github.com/ksv90/vite-plugin-meta/commit/909471ee9d0e6f0ba8b15955a5f1af23db34be6c))
+
 ## [0.0.2](https://github.com/ksv90/vite-plugin-meta/compare/v0.0.1...v0.0.2) (2025-12-25)
 
 
