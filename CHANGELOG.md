@@ -1,5 +1,13 @@
 # @releaseband/vite-plugin-meta
 
+## [0.1.0](https://github.com/ksv90/vite-plugin-meta/compare/v0.0.6...v0.1.0) (2025-12-29)
+
+
+### Features
+
+* prefixes added ([6c02f58](https://github.com/ksv90/vite-plugin-meta/commit/6c02f58a3379370e05c7110a6d9f1374989a30ef))
+* prefixes added ([7a9d9a2](https://github.com/ksv90/vite-plugin-meta/commit/7a9d9a255900388d3138c49210f52b698cb499ce))
+
 ## [0.0.6](https://github.com/ksv90/vite-plugin-meta/compare/v0.0.5...v0.0.6) (2025-12-29)
 
 
