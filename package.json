@@ -60,5 +60,10 @@
 	"publishConfig": {
 		"registry": "https://registry.npmjs.org/",
 		"provenance": true
+	},
+	"homepage": "https://github.com/ksv90/vite-plugin-meta",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/ksv90/vite-plugin-meta.git"
 	}
 }
