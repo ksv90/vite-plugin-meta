@@ -1,5 +1,13 @@
 # @releaseband/vite-plugin-meta
 
+## [0.1.2](https://github.com/ksv90/vite-plugin-meta/compare/v0.1.1...v0.1.2) (2026-01-07)
+
+
+### Bug Fixes
+
+* peer removed ([fd1e28a](https://github.com/ksv90/vite-plugin-meta/commit/fd1e28a7cf927623c70e265864f97521d5d47123))
+* peer removed ([ae84f43](https://github.com/ksv90/vite-plugin-meta/commit/ae84f43889aceed634794917a41cc39342930089))
+
 ## [0.1.1](https://github.com/ksv90/vite-plugin-meta/compare/v0.1.0...v0.1.1) (2025-12-29)
 
 
