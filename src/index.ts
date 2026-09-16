@@ -36,33 +36,26 @@ const metaPlugin = (pluginConfig: MetaPluginConfig = {}): PluginOption => {
 
 	return {
 		name: 'vite-plugin-meta',
+		async config(viteConfig, env) {
+			if (env.command !== 'serve' || viteConfig.publicDir === false) return;
+
+			const root = viteConfig.root ?? process.cwd();
+			const publicDir = path.resolve(root, viteConfig.publicDir ?? 'public');
+			try {
+				plugin.selectFiles(publicDir);
+				if (audioDuration) await plugin.audioDurationProcess();
+				await plugin.writeConfig(false, publicDir);
+			} catch (err) {
+				config.logger.error(createError(err));
+			}
+		},
 		configResolved(viteConfig) {
-			const sep = viteConfig.publicDir.includes(path.win32.sep) ? path.win32.sep : path.posix.sep;
 			config = {
 				command: viteConfig.command,
 				logger: viteConfig.logger,
 				outDir: viteConfig.build.outDir,
-				publicDir: viteConfig.publicDir.split(sep).at(-1) ?? '',
+				publicDir: viteConfig.publicDir,
 			};
-		},
-		async buildStart() {
-			if (config.command === 'build') return;
-			try {
-				plugin.selectFiles(config.publicDir);
-				if (audioDuration) await plugin.audioDurationProcess();
-				await plugin.writeConfig(false, config.publicDir);
-			} catch (err) {
-				config.logger.error(createError(err));
-			}
-		},
-
-		async buildEnd() {
-			if (config.command === 'build') return;
-			try {
-				await plugin.removeConfig();
-			} catch (err) {
-				config.logger.error(createError(err));
-			}
 		},
 		async closeBundle() {
 			if (config.command !== 'build') return;
