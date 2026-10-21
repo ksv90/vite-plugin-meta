@@ -21,8 +21,8 @@
 	"scripts": {
 		"build": "tsup-node src/index.ts src/convert.ts --sourcemap --clean --dts --format cjs,esm",
 		"dev": "pnpm build --watch",
-		"lint": "echo lint",
-		"test": "echo test"
+		"lint": "tsc --noEmit",
+		"test": "tsup-node --config tsup.test.config.ts && node --test .test-dist/meta.test.js"
 	},
 	"bin": {
 		"file-convert": "dist/convert.js"

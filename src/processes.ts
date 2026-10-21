@@ -1,9 +1,9 @@
 /* eslint-disable import/no-extraneous-dependencies */
 import { exec } from 'node:child_process';
-import { createHash } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { createReadStream, existsSync, mkdirSync, readdirSync, statSync } from 'node:fs';
-import { copyFile, readFile, unlink, writeFile } from 'node:fs/promises';
-import { dirname, extname, join, sep } from 'node:path';
+import { copyFile, mkdir, readFile, rename, rm, unlink, writeFile } from 'node:fs/promises';
+import { basename, dirname, extname, join, sep } from 'node:path';
 
 import ffmpegStatic from 'ffmpeg-static';
 import ffprobe, { type FileInfo } from 'ffprobe';
@@ -59,11 +59,15 @@ export async function readConfig(filePath: string): Promise<unknown | null> {
 	}
 }
 
-export async function writeConfig(dirPath: string, config: unknown): Promise<void> {
+export async function writeConfig(filePath: string, config: unknown): Promise<void> {
+	const temporaryPath = join(dirname(filePath), `.${basename(filePath)}.${randomUUID()}.tmp`);
 	try {
-		await writeFile(dirPath, JSON.stringify(config));
+		await mkdir(dirname(filePath), { recursive: true });
+		await writeFile(temporaryPath, JSON.stringify(config));
+		await rename(temporaryPath, filePath);
 	} catch (err) {
-		throw new Error(`writeConfig ${dirPath} failed: \n${String(err)}`);
+		await rm(temporaryPath, { force: true }).catch(() => undefined);
+		throw new Error(`writeConfig ${filePath} failed: \n${String(err)}`, { cause: err });
 	}
 }
 
@@ -99,10 +103,11 @@ export async function convertImage(
 	storageDir: string,
 	prefixes: readonly number[],
 	lossless = false,
-	quality?: number
+	quality?: number,
+	sourceRoot?: string
 ): Promise<void> {
 	const ext = extname(imagePath);
-	const newPath = replaceRoot(imagePath, storageDir, sep);
+	const newPath = replaceRoot(imagePath, storageDir, sep, sourceRoot);
 
 	checkDir(dirname(newPath));
 
@@ -127,9 +132,9 @@ export async function convertImage(
 	}
 }
 
-export async function convertAnimation(animationPath: string, storageDir: string): Promise<void> {
+export async function convertAnimation(animationPath: string, storageDir: string, sourceRoot?: string): Promise<void> {
 	const ext = extname(animationPath);
-	const newPath = replaceRoot(animationPath, storageDir, sep);
+	const newPath = replaceRoot(animationPath, storageDir, sep, sourceRoot);
 	checkDir(dirname(newPath));
 	try {
 		await Promise.all([
@@ -145,10 +150,11 @@ export async function convertAnimation(animationPath: string, storageDir: string
 export async function convertSound(
 	soundPath: string,
 	formatsOptions: Record<Extract<Ext, Ext.mp3 | Ext.ogg | Ext.m4a>, string>,
-	storageDir: string
+	storageDir: string,
+	sourceRoot?: string
 ): Promise<void> {
 	const ext = extname(soundPath);
-	const newPath = replaceRoot(soundPath, storageDir, sep);
+	const newPath = replaceRoot(soundPath, storageDir, sep, sourceRoot);
 	checkDir(dirname(newPath));
 	try {
 		await Promise.all([
@@ -164,10 +170,11 @@ export async function convertSound(
 export async function convertVideo(
 	videoPath: string,
 	formatsOptions: Record<Extract<Ext, Ext.mp4 | Ext.av1>, string>,
-	storageDir: string
+	storageDir: string,
+	sourceRoot?: string
 ): Promise<void> {
 	const ext = extname(videoPath);
-	const newPath = replaceRoot(videoPath, storageDir, sep);
+	const newPath = replaceRoot(videoPath, storageDir, sep, sourceRoot);
 	checkDir(dirname(newPath));
 	try {
 		await Promise.all([
@@ -192,9 +199,6 @@ export function makeHash(filePath: string): Promise<string> {
 	});
 }
 
-export function checkDir(dirPath: string, index = 1): void {
-	if (existsSync(dirPath)) return;
-	const splitPath = dirPath.split(sep).splice(0, index).join(sep);
-	if (!existsSync(splitPath)) mkdirSync(splitPath);
-	checkDir(dirPath, index + 1);
+export function checkDir(dirPath: string): void {
+	mkdirSync(dirPath, { recursive: true });
 }
