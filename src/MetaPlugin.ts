@@ -7,7 +7,6 @@ import {
 	createSoundsConfig,
 	createTexturesConfig,
 	createVideoConfig,
-	getBasePath,
 	removePrefix,
 	replaceRoot,
 } from './helpers';
@@ -92,7 +91,7 @@ export default class MetaPlugin {
 		if (publicLog) console.log(publicDir);
 		const resultFiles = getFilesPaths(publicDir).reduce(
 			([imagesFiles, soundsFiles, animationsFiles, videoFiles], file) => {
-				const filePath = file.replace(`${publicDir}${path.sep}`, '');
+				const filePath = path.relative(publicDir, file);
 				const excludedFile = exclude.some((excludedPath) => filePath === excludedPath);
 				if (!excludedFile) {
 					const extname = path.extname(file).toLowerCase();
@@ -121,10 +120,11 @@ export default class MetaPlugin {
 	}
 
 	public async audioDurationProcess(): Promise<void> {
+		this.trackDuration = {};
 		const jobs = this.soundsFiles.map(async (soundPath) => {
 			try {
 				const audioDuration = await getAudioDuration(soundPath);
-				let key = getBasePath(soundPath, path.sep);
+				let key = path.relative(this.publicDir, soundPath);
 				if (path.sep !== '/') key = key.replaceAll(path.sep, '/');
 				this.trackDuration[key] = audioDuration;
 			} catch (err) {
@@ -145,7 +145,7 @@ export default class MetaPlugin {
 				if (this.filesHash[imagePath] === fileHash) return;
 				if (fileChangeLog) fileLog(`file conversion "${imagePath}" started`);
 				const lossless = patterns.some((pattern) => pattern.test(forwardSepImagePath));
-				await convertImage(imagePath, storageDir, prefixes, lossless, quality);
+				await convertImage(imagePath, storageDir, prefixes, lossless, quality, this.publicDir);
 				if (fileChangeLog) fileLog('add', imagePath);
 				this.filesHash[imagePath] = fileHash;
 			} catch (err) {
@@ -162,7 +162,7 @@ export default class MetaPlugin {
 				if (this.option.convertLog) console.log(soundPath, this.filesHash[soundPath], fileHash);
 				if (this.filesHash[soundPath] === fileHash) return;
 				if (this.option.fileChangeLog) fileLog(`file conversion "${soundPath}" started`);
-				await convertSound(soundPath, formats, this.option.storageDir);
+				await convertSound(soundPath, formats, this.option.storageDir, this.publicDir);
 				if (this.option.fileChangeLog) fileLog('add', soundPath);
 				this.filesHash[soundPath] = fileHash;
 			} catch (err) {
@@ -187,7 +187,7 @@ export default class MetaPlugin {
 				if (nb_frames && +nb_frames > 50) {
 					console.warn(`image "${animationPath}" contains ${nb_frames} frames`);
 				}
-				await convertAnimation(animationPath, this.option.storageDir);
+				await convertAnimation(animationPath, this.option.storageDir, this.publicDir);
 				if (this.option.fileChangeLog) fileLog('add', animationPath);
 				this.filesHash[animationPath] = fileHash;
 			} catch (err) {
@@ -204,7 +204,7 @@ export default class MetaPlugin {
 				if (this.option.convertLog) console.log(videoPath, this.filesHash[videoPath], fileHash);
 				if (this.filesHash[videoPath] === fileHash) return;
 				if (this.option.fileChangeLog) fileLog(`file conversion "${videoPath}" started`);
-				await convertVideo(videoPath, formats, this.option.storageDir);
+				await convertVideo(videoPath, formats, this.option.storageDir, this.publicDir);
 				if (this.option.fileChangeLog) fileLog('add', videoPath);
 				this.filesHash[videoPath] = fileHash;
 			} catch (err) {
@@ -216,9 +216,6 @@ export default class MetaPlugin {
 
 	public async writeConfig(prod: boolean, dir: string): Promise<void> {
 		const { imageExt, soundExt, prefixes } = this.option;
-		const jobs = [this.removeConfig()];
-		if (prod) jobs.push(...this.soundsFiles.map((soundPath) => removeFile(soundPath)));
-		await Promise.all(jobs);
 		const metaConfig = {
 			prod,
 			gameVersion: this.option.version,
@@ -226,8 +223,9 @@ export default class MetaPlugin {
 			sounds: createSoundsConfig(prod, this.trackDuration, soundExt),
 			video: createVideoConfig(prod),
 		};
-		this.configPath = path.join(dir, this.option.metaConfigName);
-		await writeConfig(this.configPath, metaConfig);
+		const configPath = path.join(dir, this.option.metaConfigName);
+		await writeConfig(configPath, metaConfig);
+		this.configPath = configPath;
 	}
 
 	public async writeHashConfig(): Promise<void> {
@@ -243,7 +241,7 @@ export default class MetaPlugin {
 		const videosExt: ReadonlyArray<string> = [Ext.mp4];
 		const jobs = getFilesPaths(this.option.storageDir).map(async (filePath) => {
 			const extname = path.extname(filePath);
-			let newPath = replaceRoot(filePath, this.publicDir, path.sep);
+			let newPath = replaceRoot(filePath, this.publicDir, path.sep, this.option.storageDir);
 			if (imagesExt.includes(extname)) {
 				newPath = removePrefix(newPath.replace(extname, imageExt));
 				if (this.imagesFiles.includes(newPath)) return;
@@ -293,7 +291,7 @@ export default class MetaPlugin {
 	public async transferProcess(): Promise<void> {
 		const imagesJobs = this.imagesFiles.map(async (filePath) => {
 			const ext = path.extname(filePath);
-			const newPath = replaceRoot(filePath, this.option.storageDir, path.sep);
+			const newPath = replaceRoot(filePath, this.option.storageDir, path.sep, this.publicDir);
 			await removeFile(filePath);
 
 			let jobs = this.option.prefixes?.flatMap((prefixKey) => {
@@ -325,7 +323,7 @@ export default class MetaPlugin {
 		await Promise.all(imagesJobs);
 		const soundJobs = this.soundsFiles.map(async (filePath) => {
 			const ext = path.extname(filePath);
-			const newPath = replaceRoot(filePath, this.option.storageDir, path.sep);
+			const newPath = replaceRoot(filePath, this.option.storageDir, path.sep, this.publicDir);
 			await removeFile(filePath);
 			await Promise.all([
 				transferFile(newPath.replace(ext, Ext.m4a), filePath.replace(ext, Ext.m4a)),
@@ -336,7 +334,7 @@ export default class MetaPlugin {
 		await Promise.all(soundJobs);
 		const animationJobs = this.animationsFiles.map(async (filePath) => {
 			const ext = path.extname(filePath);
-			const newPath = replaceRoot(filePath, this.option.storageDir, path.sep);
+			const newPath = replaceRoot(filePath, this.option.storageDir, path.sep, this.publicDir);
 			await removeFile(filePath);
 			await Promise.all([
 				transferFile(newPath.replace(ext, Ext.gif), filePath.replace(ext, Ext.gif)),
@@ -347,7 +345,7 @@ export default class MetaPlugin {
 		await Promise.all(animationJobs);
 		const videoJobs = this.videoFiles.map(async (filePath) => {
 			const ext = path.extname(filePath);
-			const newPath = replaceRoot(filePath, this.option.storageDir, path.sep);
+			const newPath = replaceRoot(filePath, this.option.storageDir, path.sep, this.publicDir);
 			await removeFile(filePath);
 			const videoExt = `.${VideoCodecs.av1}${Ext.mp4}`;
 			await Promise.all([

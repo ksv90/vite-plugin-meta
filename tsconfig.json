@@ -1,9 +1,19 @@
 {
-    "include": ["src"],
-    "exclude": ["node_modules", "dist"],
+    "include": [
+        "src",
+        "tests",
+        "tsup.test.config.ts"
+    ],
+    "exclude": [
+        "node_modules",
+        "dist"
+    ],
     "compilerOptions": {
         "declaration": true,
-        "lib": ["DOM", "ESNext"],
+        "lib": [
+            "DOM",
+            "ESNext"
+        ],
         "module": "ESNext",
         "moduleResolution": "bundler",
         "esModuleInterop": true,

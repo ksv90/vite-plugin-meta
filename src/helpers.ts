@@ -93,8 +93,9 @@ export function getBasePath(fullPath: string, sep: string): string {
 	return fullPath.split(sep).slice(1).join(sep);
 }
 
-export function replaceRoot(filePath: string, root: string, sep: string): string {
+export function replaceRoot(filePath: string, root: string, sep: string, sourceRoot?: string): string {
 	if (!filePath) throw new Error(`${replaceRoot.name} filePath error`);
+	if (sourceRoot !== undefined) return path.join(root, path.relative(sourceRoot, filePath));
 	let splitPath = filePath.split(sep);
 	if (splitPath.length === 1) splitPath = [root, filePath];
 	else splitPath[0] = root;
