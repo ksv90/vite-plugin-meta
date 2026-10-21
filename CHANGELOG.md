@@ -1,5 +1,13 @@
 # @releaseband/vite-plugin-meta
 
+## [0.1.5](https://github.com/ksv90/vite-plugin-meta/compare/v0.1.4...v0.1.5) (2026-10-21)
+
+
+### Bug Fixes
+
+* preserve dev metadata during production builds ([d005b7f](https://github.com/ksv90/vite-plugin-meta/commit/d005b7fff42b3935a6dc9e0dc71565fe486e034f))
+* preserve dev metadata during production builds ([b60584a](https://github.com/ksv90/vite-plugin-meta/commit/b60584ab11dae1aff8684af66a2e15c116a71c9a))
+
 ## [0.1.4](https://github.com/ksv90/vite-plugin-meta/compare/v0.1.3...v0.1.4) (2026-09-21)
 
 
